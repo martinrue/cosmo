@@ -31,8 +31,8 @@ Cosmo
 Usage: cosmo <command> [<args>]
 
 Commands:
-  server-ls      lists known servers
-  server-df      shows disk usage info for a server
-  server-uptime  shows uptime info for a server
-  version        displays the current cosmo version
+  servers  lists servers
+  disk     shows disk space info
+  uptime   shows uptime info
+  version  displays the current cosmo version
 ```

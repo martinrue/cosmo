@@ -13,10 +13,10 @@ const usage = `Cosmo
 Usage: cosmo <command> [<args>]
 
 Commands:
-  server-ls      lists known servers
-  server-df      shows disk usage info for a server
-  server-uptime  shows uptime info for a server
-  version        displays the current cosmo version
+  servers  lists servers
+  disk     shows disk space info
+  uptime   shows uptime info
+  version  displays the current cosmo version
 `
 
 func main() {
@@ -40,10 +40,10 @@ func main() {
 	}
 
 	commands := map[string]commands.Command{
-		"server-ls":     commands.NewServerLs(conf),
-		"server-df":     commands.NewServerDf(conf),
-		"server-uptime": commands.NewServerUptime(conf),
-		"version":       commands.NewVersion(conf),
+		"servers": commands.NewCommandServers(conf),
+		"disk":    commands.NewCommandDisk(conf),
+		"uptime":  commands.NewCommandUptime(conf),
+		"version": commands.NewCommandVersion(conf),
 	}
 
 	command, ok := commands[os.Args[1]]

@@ -53,15 +53,15 @@ func newDiskUsage(usage string) (*diskUsage, error) {
 	return du, nil
 }
 
-// ServerDf is a server-df command.
-type ServerDf struct {
+// CommandDisk displays disk space info.
+type CommandDisk struct {
 	Config *config.Config
 	Server string
 	All    bool
 	Raw    bool
 }
 
-func (cmd *ServerDf) remoteCommand() string {
+func (cmd *CommandDisk) remoteCommand() string {
 	if cmd.Raw {
 		return "df -hl /"
 	}
@@ -69,7 +69,7 @@ func (cmd *ServerDf) remoteCommand() string {
 	return "df -hl / | awk 'FNR == 2 {print $1 \"\\n\" $2 \"\\n\" $3 \"\\n\" $4 \"\\n\" $5}'"
 }
 
-func (cmd *ServerDf) df(server config.Server) (string, error) {
+func (cmd *CommandDisk) df(name string, server config.Server) (string, error) {
 	client := &ssh.Client{
 		Host: server.String(),
 	}
@@ -91,8 +91,10 @@ func (cmd *ServerDf) df(server config.Server) (string, error) {
 	return usage.render(), nil
 }
 
-// Exec handles running of the sub command.
-func (cmd *ServerDf) Exec() {
+// Exec runs the subcommand.
+func (cmd *CommandDisk) Exec() {
+	table := &drawing.Table{}
+
 	if !cmd.All {
 		server, ok := cmd.Config.Servers[cmd.Server]
 		if !ok {
@@ -100,40 +102,43 @@ func (cmd *ServerDf) Exec() {
 			return
 		}
 
-		response, err := cmd.df(server)
+		response, err := cmd.df(cmd.Server, server)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 			return
 		}
 
-		fmt.Println(response)
+		table.AddRows(fmt.Sprintf("%s:", cmd.Server), response)
+		fmt.Println(table)
 		return
 	}
 
 	for name, server := range cmd.Config.Servers {
-		response, err := cmd.df(server)
+		response, err := cmd.df(name, server)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 			return
 		}
 
-		fmt.Printf("[%s]\n%s\n\n", name, response)
+		table.AddRows(fmt.Sprintf("%s:", name), response)
 	}
+
+	fmt.Println(table)
 }
 
-// NewServerDf creates a new server-df command.
-func NewServerDf(config *config.Config) *ServerDf {
-	if len(os.Args) < 2 || os.Args[1] != "server-df" {
+// NewCommandDisk creates a new 'disk' subcommand.
+func NewCommandDisk(config *config.Config) *CommandDisk {
+	if len(os.Args) < 2 || os.Args[1] != "disk" {
 		return nil
 	}
 
-	flags := flag.NewFlagSet("server-df", flag.ExitOnError)
+	flags := flag.NewFlagSet("disk", flag.ExitOnError)
 	server := flags.String("server", "", "")
 	all := flags.Bool("all", false, "")
 	raw := flags.Bool("raw", false, "")
 
 	flags.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: cosmo server-df --server=<id> [--raw] [--all]")
+		fmt.Fprintln(os.Stderr, "Usage: cosmo disk --server=<id> [--raw] [--all]")
 	}
 
 	flags.Parse(os.Args[2:])
@@ -143,7 +148,7 @@ func NewServerDf(config *config.Config) *ServerDf {
 		os.Exit(1)
 	}
 
-	return &ServerDf{
+	return &CommandDisk{
 		Config: config,
 		Server: *server,
 		All:    *all,

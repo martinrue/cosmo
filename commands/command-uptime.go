@@ -7,17 +7,18 @@ import (
 	"strings"
 
 	"github.com/martinrue/cosmo/config"
+	"github.com/martinrue/cosmo/drawing"
 	"github.com/martinrue/cosmo/ssh"
 )
 
-// ServerUptime is a server-uptime command.
-type ServerUptime struct {
+// CommandUptime displays uptime info.
+type CommandUptime struct {
 	Config *config.Config
 	Server string
 	All    bool
 }
 
-func (cmd *ServerUptime) uptime(server config.Server) (string, error) {
+func (cmd *CommandUptime) uptime(server config.Server) (string, error) {
 	client := &ssh.Client{
 		Host: server.String(),
 	}
@@ -34,8 +35,8 @@ func (cmd *ServerUptime) uptime(server config.Server) (string, error) {
 	return fmt.Sprintf("%s days, %s hours", days, hours), nil
 }
 
-// Exec handles running of the sub command.
-func (cmd *ServerUptime) Exec() {
+// Exec runs the subcommand.
+func (cmd *CommandUptime) Exec() {
 	if !cmd.All {
 		server, ok := cmd.Config.Servers[cmd.Server]
 		if !ok {
@@ -49,9 +50,11 @@ func (cmd *ServerUptime) Exec() {
 			return
 		}
 
-		fmt.Println(response)
+		fmt.Printf("%s: %s\n", cmd.Server, response)
 		return
 	}
+
+	table := &drawing.Table{}
 
 	for name, server := range cmd.Config.Servers {
 		response, err := cmd.uptime(server)
@@ -60,22 +63,24 @@ func (cmd *ServerUptime) Exec() {
 			return
 		}
 
-		fmt.Printf("[%s]\n%s\n\n", name, response)
+		table.AddRow(fmt.Sprintf("%s:", name), response)
 	}
+
+	fmt.Println(table)
 }
 
-// NewServerUptime creates a new server-df command.
-func NewServerUptime(config *config.Config) *ServerUptime {
-	if len(os.Args) < 2 || os.Args[1] != "server-uptime" {
+// NewCommandUptime creates a new 'uptime' subcommand.
+func NewCommandUptime(config *config.Config) *CommandUptime {
+	if len(os.Args) < 2 || os.Args[1] != "uptime" {
 		return nil
 	}
 
-	flags := flag.NewFlagSet("server-uptime", flag.ExitOnError)
+	flags := flag.NewFlagSet("uptime", flag.ExitOnError)
 	server := flags.String("server", "", "")
 	all := flags.Bool("all", false, "")
 
 	flags.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: cosmo server-uptime --server=<id> [--all]")
+		fmt.Fprintln(os.Stderr, "Usage: cosmo uptime --server=<id> [--all]")
 	}
 
 	flags.Parse(os.Args[2:])
@@ -85,7 +90,7 @@ func NewServerUptime(config *config.Config) *ServerUptime {
 		os.Exit(1)
 	}
 
-	return &ServerUptime{
+	return &CommandUptime{
 		Config: config,
 		Server: *server,
 		All:    *all,
