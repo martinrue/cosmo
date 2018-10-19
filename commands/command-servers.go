@@ -24,7 +24,7 @@ func (cmd *CommandServers) Exec() {
 }
 
 // NewCommandServers creates a new 'servers' subcommand.
-func NewCommandServers(config *config.Config) *CommandServers {
+func NewCommandServers(config *config.Config, args []string) Command {
 	return &CommandServers{
 		Config: config,
 	}

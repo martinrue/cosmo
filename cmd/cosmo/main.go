@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -10,7 +11,7 @@ import (
 
 const usage = `Cosmo
 
-Usage: cosmo <command> [<args>]
+Usage: cosmo [--version] [--help] [--config=<path>] <command> [<args>]
 
 Commands:
   servers  lists servers
@@ -19,38 +20,63 @@ Commands:
   version  displays the current cosmo version
 `
 
+var (
+	version = flag.Bool("version", false, "")
+	help    = flag.Bool("help", false, "")
+	conf    = flag.String("config", "", "")
+)
+
 func main() {
 	usageAndExit := func(code int) {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(code)
 	}
 
-	if len(os.Args) == 1 {
+	flag.Usage = func() {
 		usageAndExit(1)
 	}
 
-	if os.Args[1] == "--help" {
+	flag.Parse()
+
+	if *help {
 		usageAndExit(0)
 	}
 
-	conf, err := config.Read("cosmo.toml")
+	if *version {
+		fmt.Println("v0.0.1")
+		os.Exit(0)
+	}
+
+	configPath := "cosmo.toml"
+
+	if *conf != "" {
+		configPath = *conf
+	}
+
+	conf, err := config.Read(configPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %s\n", err)
 		os.Exit(1)
 	}
 
-	commands := map[string]commands.Command{
-		"servers": commands.NewCommandServers(conf),
-		"disk":    commands.NewCommandDisk(conf),
-		"uptime":  commands.NewCommandUptime(conf),
-		"version": commands.NewCommandVersion(conf),
-	}
+	args := flag.Args()
 
-	command, ok := commands[os.Args[1]]
-	if !ok {
-		fmt.Fprintf(os.Stderr, "cosmo: '%s' is not a cosmo command. See 'cosmo --help'.\n", os.Args[1])
+	if len(args) == 0 {
+		fmt.Fprintf(os.Stderr, "Missing <command>. See 'cosmo --help'.\n")
 		os.Exit(1)
 	}
 
-	command.Exec()
+	ctors := map[string]commands.Ctor{
+		"servers": commands.NewCommandServers,
+		"disk":    commands.NewCommandDisk,
+		"uptime":  commands.NewCommandUptime,
+	}
+
+	ctor, ok := ctors[args[0]]
+	if !ok {
+		fmt.Fprintf(os.Stderr, "'%s' is not a cosmo command. See 'cosmo --help'.\n", args[0])
+		os.Exit(1)
+	}
+
+	ctor(conf, args[1:]).Exec()
 }

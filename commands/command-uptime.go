@@ -70,11 +70,7 @@ func (cmd *CommandUptime) Exec() {
 }
 
 // NewCommandUptime creates a new 'uptime' subcommand.
-func NewCommandUptime(config *config.Config) *CommandUptime {
-	if len(os.Args) < 2 || os.Args[1] != "uptime" {
-		return nil
-	}
-
+func NewCommandUptime(config *config.Config, args []string) Command {
 	flags := flag.NewFlagSet("uptime", flag.ExitOnError)
 	server := flags.String("server", "", "")
 	all := flags.Bool("all", false, "")
@@ -83,7 +79,7 @@ func NewCommandUptime(config *config.Config) *CommandUptime {
 		fmt.Fprintln(os.Stderr, "Usage: cosmo uptime --server=<id> [--all]")
 	}
 
-	flags.Parse(os.Args[2:])
+	flags.Parse(args)
 
 	if *server == "" && !*all {
 		flags.Usage()

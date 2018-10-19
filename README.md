@@ -4,9 +4,10 @@ An agentless tool for interacting with bare-metal servers.
 
 ## Config
 
-Cosmo requires a `cosmo.toml` config file located in the working directory.
-The `cosmo.toml` file should specify a list of servers to interact with.
+Cosmo expects to find a `cosmo.toml` config file in the working directory.
+Use the `--config=<path>` flag to specify a different location.
 
+### Example cosmo.toml
 ```toml
 [servers]
 
@@ -28,7 +29,7 @@ The `cosmo.toml` file should specify a list of servers to interact with.
 ```
 Cosmo
 
-Usage: cosmo <command> [<args>]
+Usage: cosmo [--version] [--help] [--config=<path>] <command> [<args>]
 
 Commands:
   servers  lists servers

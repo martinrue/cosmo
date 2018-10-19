@@ -127,11 +127,7 @@ func (cmd *CommandDisk) Exec() {
 }
 
 // NewCommandDisk creates a new 'disk' subcommand.
-func NewCommandDisk(config *config.Config) *CommandDisk {
-	if len(os.Args) < 2 || os.Args[1] != "disk" {
-		return nil
-	}
-
+func NewCommandDisk(config *config.Config, args []string) Command {
 	flags := flag.NewFlagSet("disk", flag.ExitOnError)
 	server := flags.String("server", "", "")
 	all := flags.Bool("all", false, "")
@@ -141,7 +137,7 @@ func NewCommandDisk(config *config.Config) *CommandDisk {
 		fmt.Fprintln(os.Stderr, "Usage: cosmo disk --server=<id> [--raw] [--all]")
 	}
 
-	flags.Parse(os.Args[2:])
+	flags.Parse(args)
 
 	if *server == "" && !*all {
 		flags.Usage()
