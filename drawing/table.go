@@ -23,8 +23,7 @@ func (t *Table) colWidth(col int) int {
 	return width
 }
 
-// AddRow adds a row to the table.
-func (t *Table) AddRow(cols ...string) {
+func (t *Table) addRow(cols ...string) {
 	t.Rows = append(t.Rows, cols)
 
 	if len(t.Rows) == 1 {
@@ -36,24 +35,37 @@ func (t *Table) AddRow(cols ...string) {
 	}
 }
 
-// AddRows adds a row to the table for each line in the argument.
-func (t *Table) AddRows(prefix string, cols ...string) {
-	rows := len(strings.Split(cols[0], "\n"))
+// AddRow adds a row to the table, inserting multiple if a column contains newlines.
+func (t *Table) AddRow(cols ...string) {
+	var prefixes []string
+	var rows int
+
+	for i, col := range cols {
+		if strings.Contains(col, "\n") {
+			prefixes = cols[:i]
+			rows = len(strings.Split(col, "\n"))
+		}
+	}
+
+	if rows == 0 {
+		t.addRow(cols...)
+		return
+	}
 
 	for i := 0; i < rows; i++ {
 		c := make([]string, 0)
 
 		if i == 0 {
-			c = append(c, prefix)
+			c = append(c, prefixes...)
 		} else {
-			c = append(c, "")
+			c = append(c, make([]string, len(prefixes))...)
 		}
 
-		for _, col := range cols {
+		for _, col := range cols[len(prefixes):] {
 			c = append(c, strings.Split(col, "\n")[i])
 		}
 
-		t.AddRow(c...)
+		t.addRow(c...)
 	}
 }
 

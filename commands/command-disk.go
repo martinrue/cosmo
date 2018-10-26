@@ -98,7 +98,7 @@ func (cmd *CommandDisk) Exec() {
 	if !cmd.All {
 		server, ok := cmd.Config.Servers[cmd.Server]
 		if !ok {
-			fmt.Fprintf(os.Stderr, "error: server '%s' not found, check cosmo.toml\n", cmd.Server)
+			fmt.Fprintf(os.Stderr, "error: server '%s' not found, check config\n", cmd.Server)
 			return
 		}
 
@@ -108,7 +108,7 @@ func (cmd *CommandDisk) Exec() {
 			return
 		}
 
-		table.AddRows(fmt.Sprintf("%s:", cmd.Server), response)
+		table.AddRow(fmt.Sprintf("%s:", cmd.Server), response)
 		fmt.Println(table)
 		return
 	}
@@ -120,7 +120,7 @@ func (cmd *CommandDisk) Exec() {
 			return
 		}
 
-		table.AddRows(fmt.Sprintf("%s:", name), response)
+		table.AddRow(fmt.Sprintf("%s:", name), response)
 	}
 
 	fmt.Println(table)
@@ -144,10 +144,5 @@ func NewCommandDisk(config *config.Config, args []string) Command {
 		os.Exit(1)
 	}
 
-	return &CommandDisk{
-		Config: config,
-		Server: *server,
-		All:    *all,
-		Raw:    *raw,
-	}
+	return &CommandDisk{config, *server, *all, *raw}
 }

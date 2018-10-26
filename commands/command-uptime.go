@@ -40,7 +40,7 @@ func (cmd *CommandUptime) Exec() {
 	if !cmd.All {
 		server, ok := cmd.Config.Servers[cmd.Server]
 		if !ok {
-			fmt.Fprintf(os.Stderr, "error: server '%s' not found, check cosmo.toml\n", cmd.Server)
+			fmt.Fprintf(os.Stderr, "error: server '%s' not found, check config\n", cmd.Server)
 			return
 		}
 
@@ -86,9 +86,5 @@ func NewCommandUptime(config *config.Config, args []string) Command {
 		os.Exit(1)
 	}
 
-	return &CommandUptime{
-		Config: config,
-		Server: *server,
-		All:    *all,
-	}
+	return &CommandUptime{config, *server, *all}
 }
