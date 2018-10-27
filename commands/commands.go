@@ -10,4 +10,4 @@ type Command interface {
 }
 
 // Ctor describes a command constructor function.
-type Ctor func(*config.Config, []string) Command
+type Ctor func(config.Config, []string) Command

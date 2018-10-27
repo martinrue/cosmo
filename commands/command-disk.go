@@ -55,9 +55,8 @@ func newDiskUsage(usage string) (*diskUsage, error) {
 
 // CommandDisk displays disk space info.
 type CommandDisk struct {
-	Config *config.Config
+	Config config.Config
 	Server string
-	All    bool
 	Raw    bool
 }
 
@@ -95,7 +94,7 @@ func (cmd *CommandDisk) df(name string, server config.Server) (string, error) {
 func (cmd *CommandDisk) Exec() {
 	table := &drawing.Table{}
 
-	if !cmd.All {
+	if cmd.Server != "" {
 		server, ok := cmd.Config.Servers[cmd.Server]
 		if !ok {
 			fmt.Fprintf(os.Stderr, "error: server '%s' not found, check config\n", cmd.Server)
@@ -127,22 +126,16 @@ func (cmd *CommandDisk) Exec() {
 }
 
 // NewCommandDisk creates a new 'disk' subcommand.
-func NewCommandDisk(config *config.Config, args []string) Command {
+func NewCommandDisk(config config.Config, args []string) Command {
 	flags := flag.NewFlagSet("disk", flag.ExitOnError)
 	server := flags.String("server", "", "")
-	all := flags.Bool("all", false, "")
 	raw := flags.Bool("raw", false, "")
 
 	flags.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: cosmo disk --server=<id> [--raw] [--all]")
+		fmt.Fprintln(os.Stderr, "Usage: cosmo disk [--server=<id>] [--raw]")
 	}
 
 	flags.Parse(args)
 
-	if *server == "" && !*all {
-		flags.Usage()
-		os.Exit(1)
-	}
-
-	return &CommandDisk{config, *server, *all, *raw}
+	return &CommandDisk{config, *server, *raw}
 }

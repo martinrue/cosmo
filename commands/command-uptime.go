@@ -13,9 +13,8 @@ import (
 
 // CommandUptime displays uptime info.
 type CommandUptime struct {
-	Config *config.Config
+	Config config.Config
 	Server string
-	All    bool
 }
 
 func (cmd *CommandUptime) uptime(server config.Server) (string, error) {
@@ -37,7 +36,7 @@ func (cmd *CommandUptime) uptime(server config.Server) (string, error) {
 
 // Exec runs the subcommand.
 func (cmd *CommandUptime) Exec() {
-	if !cmd.All {
+	if cmd.Server != "" {
 		server, ok := cmd.Config.Servers[cmd.Server]
 		if !ok {
 			fmt.Fprintf(os.Stderr, "error: server '%s' not found, check config\n", cmd.Server)
@@ -70,21 +69,15 @@ func (cmd *CommandUptime) Exec() {
 }
 
 // NewCommandUptime creates a new 'uptime' subcommand.
-func NewCommandUptime(config *config.Config, args []string) Command {
+func NewCommandUptime(config config.Config, args []string) Command {
 	flags := flag.NewFlagSet("uptime", flag.ExitOnError)
 	server := flags.String("server", "", "")
-	all := flags.Bool("all", false, "")
 
 	flags.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: cosmo uptime --server=<id> [--all]")
+		fmt.Fprintln(os.Stderr, "Usage: cosmo uptime [--server=<id>]")
 	}
 
 	flags.Parse(args)
 
-	if *server == "" && !*all {
-		flags.Usage()
-		os.Exit(1)
-	}
-
-	return &CommandUptime{config, *server, *all}
+	return &CommandUptime{config, *server}
 }

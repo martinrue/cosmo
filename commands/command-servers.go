@@ -9,7 +9,7 @@ import (
 
 // CommandServers lists all servers from config.
 type CommandServers struct {
-	Config *config.Config
+	Config config.Config
 }
 
 // Exec runs the subcommand.
@@ -24,6 +24,6 @@ func (cmd *CommandServers) Exec() {
 }
 
 // NewCommandServers creates a new 'servers' subcommand.
-func NewCommandServers(config *config.Config, args []string) Command {
+func NewCommandServers(config config.Config, args []string) Command {
 	return &CommandServers{config}
 }

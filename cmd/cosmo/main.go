@@ -14,11 +14,13 @@ const usage = `Cosmo
 Usage: cosmo [--version] [--help] [--config=<path>] <command> [<args>]
 
 Commands:
-  disk     shows disk space info
-  servers  lists servers
+  cmds     lists a task's commands
   tasks    lists tasks
+  disk     shows disk space info
+  run      runs a task
+  servers  lists servers
   uptime   shows uptime info
-  version  displays the current cosmo version
+  version  displays the current version
 `
 
 var (
@@ -68,7 +70,9 @@ func main() {
 	}
 
 	ctors := map[string]commands.Ctor{
+		"cmds":    commands.NewCommandCmds,
 		"disk":    commands.NewCommandDisk,
+		"run":     commands.NewCommandRun,
 		"servers": commands.NewCommandServers,
 		"tasks":   commands.NewCommandTasks,
 		"uptime":  commands.NewCommandUptime,
