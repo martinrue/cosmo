@@ -14,13 +14,10 @@ const usage = `Cosmo
 Usage: cosmo [--version] [--help] [--config=<path>] <command> [<args>]
 
 Commands:
-  cmds     lists a task's commands
-  tasks    lists tasks
-  disk     shows disk space info
   run      runs a task
   servers  lists servers
-  uptime   shows uptime info
-  version  displays the current version
+  steps    lists the steps of a task
+  tasks    lists tasks
 `
 
 var (
@@ -58,24 +55,21 @@ func main() {
 
 	conf, err := config.Read(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "config error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "error reading config file: %s\n", err)
 		os.Exit(1)
 	}
 
 	args := flag.Args()
 
 	if len(args) == 0 {
-		fmt.Fprintf(os.Stderr, "Missing <command>. See 'cosmo --help'.\n")
-		os.Exit(1)
+		usageAndExit(1)
 	}
 
 	ctors := map[string]commands.Ctor{
-		"cmds":    commands.NewCommandCmds,
-		"disk":    commands.NewCommandDisk,
 		"run":     commands.NewCommandRun,
 		"servers": commands.NewCommandServers,
+		"steps":   commands.NewCommandSteps,
 		"tasks":   commands.NewCommandTasks,
-		"uptime":  commands.NewCommandUptime,
 	}
 
 	ctor, ok := ctors[args[0]]
@@ -84,5 +78,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctor(conf, args[1:]).Exec()
+	command := ctor(conf, args[1:])
+
+	if err := command.Exec(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(2)
+	}
 }

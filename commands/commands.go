@@ -6,7 +6,7 @@ import (
 
 // Command describes a runnable command.
 type Command interface {
-	Exec()
+	Exec() error
 }
 
 // Ctor describes a command constructor function.
