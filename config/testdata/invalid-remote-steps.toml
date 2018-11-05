@@ -1,0 +1,10 @@
+[servers.invalid-remote-steps]
+host = 'host'
+user = 'user'
+
+  [servers.invalid-remote-steps.tasks.task]
+    remote = [
+      { exec = '...' },
+      { exec = '...' },
+      {},
+    ]

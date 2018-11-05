@@ -1,0 +1,9 @@
+[servers.invalid-local-steps]
+host = 'host'
+user = 'user'
+
+  [servers.invalid-local-steps.tasks.task]
+    local = [
+      { exec = '...' },
+      {},
+    ]

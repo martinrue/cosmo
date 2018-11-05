@@ -1,0 +1,7 @@
+[servers.no-steps]
+host = 'host'
+user = 'user'
+
+  [servers.no-steps.tasks.task]
+    local = []
+    remote_raw = ''

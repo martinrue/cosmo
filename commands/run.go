@@ -70,7 +70,7 @@ func NewCommandRun(config config.Config, args []string) Command {
 
 	task, server, err := config.Servers.FindTask(args[0], *flagServer)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		os.Exit(1)
 	}
 

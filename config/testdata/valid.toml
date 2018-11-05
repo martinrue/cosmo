@@ -1,0 +1,16 @@
+[servers.valid]
+host = 'host'
+user = 'user'
+
+  [servers.valid.tasks.task]
+    local = [
+      { exec = 'echo "local first"' },
+      { exec = 'echo "local second"' },
+      { exec = 'echo "local third"' },
+    ]
+
+    remote = [
+      { exec = 'echo "remote first"' },
+      { exec = 'echo "remote second"' },
+      { exec = 'echo "remote third"' },
+    ]

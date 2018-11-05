@@ -1,0 +1,13 @@
+[servers.raw-steps]
+host = 'host'
+user = 'user'
+
+  [servers.raw-steps.tasks.deploy]
+    local_raw = '''
+      echo "Hello"
+    '''
+
+    remote_raw = '''
+      ls /etc
+      ls /usr
+    '''

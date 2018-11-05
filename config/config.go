@@ -44,13 +44,13 @@ func (s *Server) String() string {
 type ServerMap map[string]Server
 
 // FindTask searches for a task by name.
-func (sm ServerMap) FindTask(taskName string, serverName string) (Task, Server, error) {
+func (m ServerMap) FindTask(taskName string, serverName string) (Task, Server, error) {
 	var foundTask Task
 	var foundServer Server
 
 	found := false
 
-	for server, s := range sm {
+	for server, s := range m {
 		if serverName != "" && serverName != server {
 			continue
 		}
@@ -58,7 +58,7 @@ func (sm ServerMap) FindTask(taskName string, serverName string) (Task, Server, 
 		for name, t := range s.Tasks {
 			if taskName == name {
 				if found {
-					return Task{}, Server{}, fmt.Errorf("error: task '%s' is ambiguous, specify server", taskName)
+					return Task{}, Server{}, fmt.Errorf("task '%s' is ambiguous, specify server", taskName)
 				}
 
 				found = true
@@ -70,7 +70,7 @@ func (sm ServerMap) FindTask(taskName string, serverName string) (Task, Server, 
 	}
 
 	if !found {
-		return Task{}, Server{}, fmt.Errorf("error: task '%s' not found, check config", taskName)
+		return Task{}, Server{}, fmt.Errorf("task '%s' not found, check config", taskName)
 	}
 
 	return foundTask, foundServer, nil
@@ -81,32 +81,39 @@ type Config struct {
 	Servers ServerMap
 }
 
-func validateTasks(serverName string, tasks TaskMap) error {
-	for taskName, task := range tasks {
-		if len(task.Local) == 0 && len(task.Remote) == 0 {
-			return fmt.Errorf("task '%s' for server '%s' has no local or remote steps", taskName, serverName)
+// Read reads and parses the cosmo config file.
+func Read(filepath string) (Config, error) {
+	if filepath == "" {
+		return Config{}, errors.New("no config path")
+	}
+
+	config := Config{}
+
+	if _, err := toml.DecodeFile(filepath, &config); err != nil {
+		return Config{}, err
+	}
+
+	if len(config.Servers) == 0 {
+		return Config{}, errors.New("no servers")
+	}
+
+	for serverName, server := range config.Servers {
+		if server.Host == "" {
+			return Config{}, fmt.Errorf("server '%s' is missing 'host' key", serverName)
 		}
 
-		if err := validateSteps(taskName, task.Local); err != nil {
-			return err
+		if server.User == "" {
+			return Config{}, fmt.Errorf("server '%s' is missing 'user' key", serverName)
 		}
 
-		if err := validateSteps(taskName, task.Remote); err != nil {
-			return err
+		processRawSteps(&server)
+
+		if err := validateTasks(serverName, server.Tasks); err != nil {
+			return Config{}, err
 		}
 	}
 
-	return nil
-}
-
-func validateSteps(taskName string, steps []Step) error {
-	for i, step := range steps {
-		if step.Exec == "" {
-			return fmt.Errorf("step %d of task '%s' is missing 'exec' key", i+1, taskName)
-		}
-	}
-
-	return nil
+	return config, nil
 }
 
 func processRawSteps(server *Server) {
@@ -149,33 +156,34 @@ func processRawSteps(server *Server) {
 	}
 }
 
-// Read reads and parses the cosmo config file.
-func Read(path string) (Config, error) {
-	config := Config{}
-
-	if path == "" {
-		return config, errors.New("missing config file path")
+func validateTasks(serverName string, tasks TaskMap) error {
+	if len(tasks) == 0 {
+		return fmt.Errorf("no tasks for server '%s'", serverName)
 	}
 
-	if _, err := toml.DecodeFile(path, &config); err != nil {
-		return config, err
-	}
-
-	for serverName, server := range config.Servers {
-		if server.Host == "" {
-			return config, fmt.Errorf("server '%s' is missing 'host' key", serverName)
+	for taskName, task := range tasks {
+		if len(task.Local) == 0 && len(task.Remote) == 0 {
+			return fmt.Errorf("task '%s' for server '%s' has no local or remote steps", taskName, serverName)
 		}
 
-		if server.User == "" {
-			return config, fmt.Errorf("server '%s' is missing 'user' key", serverName)
+		if err := validateSteps(taskName, task.Local); err != nil {
+			return err
 		}
 
-		processRawSteps(&server)
-
-		if err := validateTasks(serverName, server.Tasks); err != nil {
-			return config, err
+		if err := validateSteps(taskName, task.Remote); err != nil {
+			return err
 		}
 	}
 
-	return config, nil
+	return nil
+}
+
+func validateSteps(taskName string, steps []Step) error {
+	for i, step := range steps {
+		if step.Exec == "" {
+			return fmt.Errorf("step %d of task '%s' is missing 'exec' key", i+1, taskName)
+		}
+	}
+
+	return nil
 }

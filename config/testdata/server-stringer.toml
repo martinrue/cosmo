@@ -1,0 +1,8 @@
+[servers.server]
+host = 'kramerica.industries'
+user = 'cosmo'
+
+  [servers.server.tasks.task]
+    remote = [
+      { exec = 'echo task' },
+  ]
