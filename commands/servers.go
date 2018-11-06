@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/martinrue/cosmo/config"
-	"github.com/martinrue/cosmo/text"
+	"github.com/martinrue/cosmo/table"
 )
 
 // CommandServers lists all servers from config.
@@ -14,13 +14,13 @@ type CommandServers struct {
 
 // Exec runs the subcommand.
 func (cmd *CommandServers) Exec() error {
-	table := &text.Table{}
+	table := &table.Table{}
 
 	for name, server := range cmd.Config.Servers {
 		table.AddRow(name, server.String(), fmt.Sprintf("tasks: %d", len(server.Tasks)))
 	}
 
-	table.Print()
+	fmt.Println(table)
 
 	return nil
 }

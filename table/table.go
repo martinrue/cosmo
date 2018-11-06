@@ -1,7 +1,8 @@
-package text
+package table
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Table handles the drawing of tabular data.
@@ -35,10 +36,9 @@ func (t *Table) AddRow(cols ...string) {
 	}
 }
 
-// Print writes the table to stdout.
-func (t *Table) Print() {
+func (t *Table) String() string {
 	if len(t.Rows) == 0 {
-		return
+		return ""
 	}
 
 	padding := 0
@@ -47,16 +47,22 @@ func (t *Table) Print() {
 		padding = 1
 	}
 
+	table := strings.Builder{}
+
 	for ri, row := range t.Rows {
+		cols := make([]string, 0)
+
 		for ci, col := range row {
 			format := fmt.Sprintf("%%-%dv ", t.colWidth(ci)+padding)
-			fmt.Printf(format, col)
+			cols = append(cols, fmt.Sprintf(format, col))
 		}
 
+		table.WriteString(strings.TrimSpace(strings.Join(cols, "")))
+
 		if ri != len(t.Rows)-1 {
-			fmt.Println()
+			table.WriteString("\n")
 		}
 	}
 
-	fmt.Println()
+	return table.String()
 }

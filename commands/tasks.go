@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/martinrue/cosmo/config"
-	"github.com/martinrue/cosmo/text"
+	"github.com/martinrue/cosmo/table"
 )
 
 // CommandTasks lists all tasks for a server.
@@ -16,7 +16,7 @@ type CommandTasks struct {
 	ServerName string
 }
 
-func (cmd *CommandTasks) addTasks(serverName string, server config.Server, table *text.Table) {
+func (cmd *CommandTasks) addTasks(serverName string, server config.Server, table *table.Table) {
 	tasks := make([]string, 0)
 
 	for name := range server.Tasks {
@@ -28,7 +28,7 @@ func (cmd *CommandTasks) addTasks(serverName string, server config.Server, table
 
 // Exec runs the subcommand.
 func (cmd *CommandTasks) Exec() error {
-	table := &text.Table{}
+	table := &table.Table{}
 
 	for serverName, server := range cmd.Config.Servers {
 		if cmd.ServerName != "" && cmd.ServerName != serverName {
@@ -40,7 +40,7 @@ func (cmd *CommandTasks) Exec() error {
 		}
 	}
 
-	table.Print()
+	fmt.Println(table)
 
 	return nil
 }
