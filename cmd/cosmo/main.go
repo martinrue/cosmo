@@ -7,6 +7,7 @@ import (
 
 	"github.com/martinrue/cosmo/commands"
 	"github.com/martinrue/cosmo/config"
+	"github.com/martinrue/cosmo/runner"
 )
 
 const usage = `Cosmo
@@ -55,7 +56,7 @@ func main() {
 
 	conf, err := config.Read(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error reading config file: %s\n", err)
+		fmt.Fprintf(os.Stderr, "error: failed to read config file: %s\n", err)
 		os.Exit(1)
 	}
 
@@ -65,23 +66,26 @@ func main() {
 		usageAndExit(1)
 	}
 
-	ctors := map[string]commands.Ctor{
-		"run":     commands.NewCommandRun,
-		"servers": commands.NewCommandServers,
-		"steps":   commands.NewCommandSteps,
-		"tasks":   commands.NewCommandTasks,
-	}
+	var cmd commands.Command
 
-	ctor, ok := ctors[args[0]]
-	if !ok {
+	switch args[0] {
+	case "run":
+		local := &runner.Local{Exec: runner.Exec}
+		remote := &runner.Remote{Exec: runner.Exec}
+		cmd = commands.NewCommandRun(conf, local, remote, args[1:])
+	case "servers":
+		cmd = commands.NewCommandServers(conf, args[1:])
+	case "steps":
+		cmd = commands.NewCommandSteps(conf, args[1:])
+	case "tasks":
+		cmd = commands.NewCommandTasks(conf, args[1:])
+	default:
 		fmt.Fprintf(os.Stderr, "'%s' is not a cosmo command. See 'cosmo --help'.\n", args[0])
 		os.Exit(1)
 	}
 
-	command := ctor(conf, args[1:])
-
-	if err := command.Exec(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+	if err := cmd.Exec(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		os.Exit(2)
 	}
 }

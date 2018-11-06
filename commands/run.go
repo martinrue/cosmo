@@ -12,9 +12,10 @@ import (
 
 // CommandRun runs a task.
 type CommandRun struct {
-	Task    config.Task
-	Host    string
-	Verbose bool
+	LocalRunner  runner.Runner
+	RemoteRunner runner.Runner
+	Task         config.Task
+	Verbose      bool
 }
 
 // Exec runs the subcommand.
@@ -33,21 +34,21 @@ func (cmd *CommandRun) Exec() error {
 
 		script, err := bash.Write(steps)
 		if err != nil {
-			return fmt.Errorf("error: failed to write bash script: %s", err)
+			return fmt.Errorf("failed to write bash script: %s", err)
 		}
 
 		if err := runner.Run(script); err != nil {
-			return fmt.Errorf("error: script run failed: %s", err)
+			return fmt.Errorf("script run failed: %s", err)
 		}
 
 		return nil
 	}
 
-	if err := execSteps(cmd.Task.Local, &runner.Local{}); err != nil {
+	if err := execSteps(cmd.Task.Local, cmd.LocalRunner); err != nil {
 		return err
 	}
 
-	if err := execSteps(cmd.Task.Remote, &runner.Remote{Host: cmd.Host}); err != nil {
+	if err := execSteps(cmd.Task.Remote, cmd.RemoteRunner); err != nil {
 		return err
 	}
 
@@ -55,7 +56,7 @@ func (cmd *CommandRun) Exec() error {
 }
 
 // NewCommandRun creates a new 'run' subcommand.
-func NewCommandRun(config config.Config, args []string) Command {
+func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runner, args []string) Command {
 	flags := flag.NewFlagSet("run", flag.ExitOnError)
 	flagServer := flags.String("server", "", "")
 	flagVerbose := flags.Bool("v", false, "")
@@ -77,9 +78,13 @@ func NewCommandRun(config config.Config, args []string) Command {
 		os.Exit(1)
 	}
 
+	remoteRunner := remote.(*runner.Remote)
+	remoteRunner.Host = server.String()
+
 	return &CommandRun{
-		Task:    task,
-		Host:    server.String(),
-		Verbose: *flagVerbose,
+		LocalRunner:  local,
+		RemoteRunner: remote,
+		Task:         task,
+		Verbose:      *flagVerbose,
 	}
 }
