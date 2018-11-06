@@ -1,0 +1,10 @@
+set -e
+
+
+echo one
+
+
+echo two >/dev/null
+
+
+echo three >/dev/null 2>&1

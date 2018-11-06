@@ -1,0 +1,10 @@
+set -e
+
+echo "echo one"
+echo one || true
+
+echo "@echo two"
+echo two >/dev/null || true
+
+echo "!echo three"
+echo three >/dev/null 2>&1 || true

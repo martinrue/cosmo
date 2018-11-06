@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/martinrue/cosmo/bash"
 	"github.com/martinrue/cosmo/config"
 	"github.com/martinrue/cosmo/runner"
+	"github.com/martinrue/cosmo/script"
 )
 
 // CommandRun runs a task.
@@ -19,12 +19,19 @@ type CommandRun struct {
 
 // Exec runs the subcommand.
 func (cmd *CommandRun) Exec() error {
-	execSteps := func(steps []config.Step, noEcho bool, skipErrors bool, verbose bool, runner runner.Runner) error {
+	execSteps := func(steps []config.Step, runner runner.Runner) error {
 		if len(steps) == 0 {
 			return nil
 		}
 
-		script, err := bash.Write(steps, noEcho, skipErrors, verbose)
+		bash := &script.Bash{
+			Template:   script.BashTemplate,
+			NoEcho:     cmd.Task.NoEcho,
+			SkipErrors: cmd.Task.SkipErrors,
+			Verbose:    cmd.Verbose,
+		}
+
+		script, err := bash.Write(steps)
 		if err != nil {
 			return fmt.Errorf("error: failed to write bash script: %s", err)
 		}
@@ -36,15 +43,11 @@ func (cmd *CommandRun) Exec() error {
 		return nil
 	}
 
-	noEcho := cmd.Task.NoEcho
-	skipErrors := cmd.Task.SkipErrors
-	verbose := cmd.Verbose
-
-	if err := execSteps(cmd.Task.Local, noEcho, skipErrors, verbose, &runner.Local{}); err != nil {
+	if err := execSteps(cmd.Task.Local, &runner.Local{}); err != nil {
 		return err
 	}
 
-	if err := execSteps(cmd.Task.Remote, noEcho, skipErrors, verbose, &runner.Remote{Host: cmd.Host}); err != nil {
+	if err := execSteps(cmd.Task.Remote, &runner.Remote{Host: cmd.Host}); err != nil {
 		return err
 	}
 

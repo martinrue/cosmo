@@ -1,0 +1,10 @@
+set -e
+
+echo "echo one"
+echo one
+
+echo "@echo two"
+echo two
+
+echo "!echo three"
+echo three
