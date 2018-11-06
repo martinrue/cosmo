@@ -1,5 +1,7 @@
 # Cosmo
 
+[![CircleCI](https://circleci.com/gh/martinrue/cosmo.svg?style=svg)](https://circleci.com/gh/martinrue/cosmo)
+
 An agentless tool for interacting with bare-metal servers.
 
 ## Config
