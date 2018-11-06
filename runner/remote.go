@@ -1,5 +1,7 @@
 package runner
 
+import "os/exec"
+
 // Remote is a remote script runner.
 type Remote struct {
 	Exec Executor
@@ -8,5 +10,6 @@ type Remote struct {
 
 // Run runs a script remotely.
 func (r *Remote) Run(script string) error {
-	return r.Exec("ssh", r.Host, "bash -s <<COSMO", script, "\nCOSMO")
+	cmd := exec.Command("ssh", r.Host, "bash -s <<COSMO", script, "\nCOSMO")
+	return r.Exec(cmd)
 }

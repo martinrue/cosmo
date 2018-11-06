@@ -7,13 +7,11 @@ import (
 	"os/exec"
 )
 
-// Executor is a function capable of running the named program.
-type Executor func(string, ...string) error
+// Executor is a function capable of running the command.
+type Executor func(*exec.Cmd) error
 
-// Exec runs the named program and prints stdout and stderr.
-func Exec(name string, args ...string) error {
-	command := exec.Command(name, args...)
-
+// Exec runs the command and prints stdout and stderr.
+func Exec(command *exec.Cmd) error {
 	stdout, err := command.StdoutPipe()
 	if err != nil {
 		return err
