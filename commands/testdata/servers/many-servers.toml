@@ -1,0 +1,31 @@
+[servers.server-1]
+host = 'host-1'
+user = 'user-1'
+
+  [servers.server-1.tasks.task-1]
+    remote = [
+      { exec = 'echo task-1' },
+    ]
+
+  [servers.server-1.tasks.task-2]
+    remote = [
+      { exec = 'echo task-2' },
+    ]
+
+[servers.server-2]
+host = 'longhost-2'
+user = 'longuser-2'
+
+  [servers.server-2.tasks.task-1]
+    remote = [
+      { exec = 'echo task-1' },
+    ]
+
+[servers.server-3]
+host = 'host-3'
+user = 'user-3'
+
+  [servers.server-3.tasks.task-1]
+    remote = [
+      { exec = 'echo task-1' },
+    ]

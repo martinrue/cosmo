@@ -72,15 +72,24 @@ func main() {
 	case "run":
 		local := &runner.Local{Exec: runner.Exec}
 		remote := &runner.Remote{Exec: runner.Exec}
-		cmd = commands.NewCommandRun(conf, local, remote, args[1:])
+		cmd = commands.NewCommandRun(conf, local, remote, args[1:], os.Stdout)
 	case "servers":
-		cmd = commands.NewCommandServers(conf, args[1:])
+		cmd, err = commands.NewCommandServers(conf, args[1:], os.Stdout)
 	case "steps":
-		cmd = commands.NewCommandSteps(conf, args[1:])
+		cmd = commands.NewCommandSteps(conf, args[1:], os.Stdout)
 	case "tasks":
-		cmd = commands.NewCommandTasks(conf, args[1:])
+		cmd, err = commands.NewCommandTasks(conf, args[1:], os.Stdout)
 	default:
 		fmt.Fprintf(os.Stderr, "'%s' is not a cosmo command. See 'cosmo --help'.\n", args[0])
+		os.Exit(1)
+	}
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		os.Exit(1)
+	}
+
+	if cmd == nil {
 		os.Exit(1)
 	}
 

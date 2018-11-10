@@ -1,26 +1,42 @@
 package commands
 
 import (
+	"errors"
 	"flag"
 	"fmt"
-	"os"
+	"io"
+	"sort"
 	"strings"
 
 	"github.com/martinrue/cosmo/config"
 	"github.com/martinrue/cosmo/table"
 )
 
+var (
+	// ErrFlagParse represents an error parsing flags.
+	ErrFlagParse = errors.New("flag parse error")
+)
+
 // CommandTasks lists all tasks for a server.
 type CommandTasks struct {
 	Config     config.Config
 	ServerName string
+	Writer     io.Writer
 }
 
 func (cmd *CommandTasks) addTasks(serverName string, server config.Server, table *table.Table) {
+	keys := make([]string, 0)
+
+	for key := range server.Tasks {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
 	tasks := make([]string, 0)
 
-	for name := range server.Tasks {
-		tasks = append(tasks, name)
+	for _, taskName := range keys {
+		tasks = append(tasks, taskName)
 	}
 
 	table.AddRow(serverName, strings.Join(tasks, ", "))
@@ -28,43 +44,55 @@ func (cmd *CommandTasks) addTasks(serverName string, server config.Server, table
 
 // Exec runs the subcommand.
 func (cmd *CommandTasks) Exec() error {
+	keys := make([]string, 0)
+
+	for key := range cmd.Config.Servers {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
 	table := &table.Table{}
 
-	for serverName, server := range cmd.Config.Servers {
+	for _, serverName := range keys {
 		if cmd.ServerName != "" && cmd.ServerName != serverName {
 			continue
 		}
+
+		server := cmd.Config.Servers[serverName]
 
 		if len(server.Tasks) > 0 {
 			cmd.addTasks(serverName, server, table)
 		}
 	}
 
-	fmt.Println(table)
+	fmt.Fprintln(cmd.Writer, table)
 
 	return nil
 }
 
 // NewCommandTasks creates a new 'tasks' subcommand.
-func NewCommandTasks(config config.Config, args []string) Command {
-	flags := flag.NewFlagSet("tasks", flag.ExitOnError)
+func NewCommandTasks(config config.Config, args []string, writer io.Writer) (Command, error) {
+	flags := flag.NewFlagSet("tasks", flag.ContinueOnError)
 	server := flags.String("server", "", "")
 
 	flags.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: cosmo tasks [--server=<name>]")
+		fmt.Fprintln(writer, "usage: cosmo tasks [--server=<name>]")
 	}
 
-	flags.Parse(args)
+	if err := flags.Parse(args); err != nil {
+		return nil, ErrFlagParse
+	}
 
 	if *server != "" {
 		if _, ok := config.Servers[*server]; !ok {
-			fmt.Fprintf(os.Stderr, "error: server '%s' not found, check config\n", *server)
-			os.Exit(1)
+			return nil, fmt.Errorf("server '%s' not found, check config", *server)
 		}
 	}
 
 	return &CommandTasks{
 		Config:     config,
 		ServerName: *server,
-	}
+		Writer:     writer,
+	}, nil
 }

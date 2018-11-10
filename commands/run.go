@@ -3,6 +3,7 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/martinrue/cosmo/config"
@@ -14,6 +15,7 @@ import (
 type CommandRun struct {
 	LocalRunner  runner.Runner
 	RemoteRunner runner.Runner
+	Writer       io.Writer
 	Task         config.Task
 	Verbose      bool
 }
@@ -37,7 +39,7 @@ func (cmd *CommandRun) Exec() error {
 			return fmt.Errorf("failed to write bash script: %s", err)
 		}
 
-		if err := runner.Run(script); err != nil {
+		if err := runner.Run(script, cmd.Writer); err != nil {
 			return fmt.Errorf("script run failed: %s", err)
 		}
 
@@ -56,13 +58,13 @@ func (cmd *CommandRun) Exec() error {
 }
 
 // NewCommandRun creates a new 'run' subcommand.
-func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runner, args []string) Command {
+func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runner, args []string, writer io.Writer) Command {
 	flags := flag.NewFlagSet("run", flag.ExitOnError)
 	flagServer := flags.String("server", "", "")
 	flagVerbose := flags.Bool("v", false, "")
 
 	flags.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: cosmo run <task> [--server=<name>] [-v]")
+		fmt.Fprintln(writer, "Usage: cosmo run <task> [--server=<name>] [-v]")
 	}
 
 	if len(args) == 0 {
@@ -74,7 +76,7 @@ func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runn
 
 	task, server, err := config.Servers.FindTask(args[0], *flagServer)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		fmt.Fprintf(writer, "error: %s\n", err)
 		os.Exit(1)
 	}
 
@@ -84,6 +86,7 @@ func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runn
 	return &CommandRun{
 		LocalRunner:  local,
 		RemoteRunner: remote,
+		Writer:       writer,
 		Task:         task,
 		Verbose:      *flagVerbose,
 	}

@@ -3,6 +3,7 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/martinrue/cosmo/config"
@@ -14,6 +15,7 @@ const maxCommandLength = 50
 type CommandSteps struct {
 	TaskName string
 	Task     config.Task
+	Writer   io.Writer
 }
 
 func (cmd *CommandSteps) printSteps(serverName string, steps []config.Step) {
@@ -21,16 +23,16 @@ func (cmd *CommandSteps) printSteps(serverName string, steps []config.Step) {
 		return
 	}
 
-	fmt.Printf("\n%s\n", serverName)
+	fmt.Fprintf(cmd.Writer, "\n%s\n", serverName)
 
 	for _, step := range steps {
-		fmt.Printf("  %s\n", step.Exec)
+		fmt.Fprintf(cmd.Writer, "  %s\n", step.Exec)
 	}
 }
 
 // Exec runs the subcommand.
 func (cmd *CommandSteps) Exec() error {
-	fmt.Printf("Steps for task '%s' on server '%s':\n", cmd.TaskName, cmd.Task.ServerName)
+	fmt.Fprintf(cmd.Writer, "Steps for task '%s' on server '%s':\n", cmd.TaskName, cmd.Task.ServerName)
 
 	cmd.printSteps("local", cmd.Task.Local)
 	cmd.printSteps("remote", cmd.Task.Remote)
@@ -39,12 +41,12 @@ func (cmd *CommandSteps) Exec() error {
 }
 
 // NewCommandSteps creates a new 'steps' subcommand.
-func NewCommandSteps(config config.Config, args []string) Command {
+func NewCommandSteps(config config.Config, args []string, writer io.Writer) Command {
 	flags := flag.NewFlagSet("tasks", flag.ExitOnError)
 	server := flags.String("server", "", "")
 
 	flags.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: cosmo steps <task> [--server=<name>]")
+		fmt.Fprintln(writer, "Usage: cosmo steps <task> [--server=<name>]")
 	}
 
 	if len(args) == 0 {
@@ -58,12 +60,13 @@ func NewCommandSteps(config config.Config, args []string) Command {
 
 	task, _, err := config.Servers.FindTask(taskName, *server)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		fmt.Fprintf(writer, "error: %s\n", err)
 		os.Exit(1)
 	}
 
 	return &CommandSteps{
 		TaskName: taskName,
 		Task:     task,
+		Writer:   writer,
 	}
 }

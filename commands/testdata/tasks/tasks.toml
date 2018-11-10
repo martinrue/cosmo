@@ -1,0 +1,34 @@
+[servers.server-1]
+host = 'host'
+user = 'user'
+
+  [servers.server-1.tasks.task-1]
+    local = [
+      { exec = 'echo one' },
+      { exec = 'echo two' },
+    ]
+
+    remote = [
+      { exec = 'echo three' },
+      { exec = 'echo four' },
+    ]
+
+  [servers.server-1.tasks.task-2]
+    local = [
+      { exec = 'echo one' },
+    ]
+
+    remote = [
+      { exec = 'echo two' },
+    ]
+
+[servers.server-2]
+host = 'host'
+user = 'user'
+
+  [servers.server-2.tasks.task-1]
+    local = [
+      { exec = 'echo one' },
+      { exec = 'echo two' },
+      { exec = 'echo three' },
+    ]

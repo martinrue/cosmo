@@ -7,11 +7,11 @@ import (
 	"os/exec"
 )
 
-// Executor is a function capable of running the command.
-type Executor func(*exec.Cmd) error
+// Executor is a function capable of running the command and displaying its ouput.
+type Executor func(*exec.Cmd, io.Writer) error
 
 // Exec runs the command and prints stdout and stderr.
-func Exec(command *exec.Cmd) error {
+func Exec(command *exec.Cmd, writer io.Writer) error {
 	stdout, err := command.StdoutPipe()
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func Exec(command *exec.Cmd) error {
 		scanner.Split(bufio.ScanLines)
 
 		for scanner.Scan() {
-			fmt.Println(scanner.Text())
+			fmt.Fprintln(writer, scanner.Text())
 		}
 	}
 

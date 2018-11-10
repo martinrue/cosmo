@@ -1,6 +1,7 @@
 package runner_test
 
 import (
+	"io"
 	"io/ioutil"
 	"os/exec"
 	"path"
@@ -14,7 +15,7 @@ func createMockExec() (*string, *string, runner.Executor) {
 	execName := ""
 	execArgs := ""
 
-	return &execName, &execArgs, func(command *exec.Cmd) error {
+	return &execName, &execArgs, func(command *exec.Cmd, writer io.Writer) error {
 		execName = command.Path
 		execArgs = strings.Join(command.Args, " ")
 		return nil
@@ -25,7 +26,7 @@ func TestLocalRunner(t *testing.T) {
 	name, args, exec := createMockExec()
 
 	local := &runner.Local{Exec: exec}
-	_ = local.Run("<local script>")
+	_ = local.Run("<local script>", ioutil.Discard)
 
 	if path.Base(*name) != "bash" {
 		t.Fatalf("expected runner to exec (bash), got (%v)", *name)
@@ -42,7 +43,7 @@ func TestRemoteRunner(t *testing.T) {
 	name, args, exec := createMockExec()
 
 	remote := &runner.Remote{Exec: exec, Host: "user@host.domain"}
-	_ = remote.Run("<remote script>")
+	_ = remote.Run("<remote script>", ioutil.Discard)
 
 	if path.Base(*name) != "ssh" {
 		t.Fatalf("expected runner to exec (ssh), got (%v)", *name)
@@ -58,7 +59,7 @@ func TestRemoteRunner(t *testing.T) {
 func TestExec(t *testing.T) {
 	cmd := exec.Command("go", "version")
 
-	if err := runner.Exec(cmd); err != nil {
+	if err := runner.Exec(cmd, ioutil.Discard); err != nil {
 		t.Fatalf("expected successful exit, got (%v)", err)
 	}
 }
@@ -69,7 +70,7 @@ func TestExecStderrPipeFailure(t *testing.T) {
 
 	expected := "exec: Stderr already set"
 
-	if err := runner.Exec(cmd); err != nil && err.Error() != expected {
+	if err := runner.Exec(cmd, ioutil.Discard); err != nil && err.Error() != expected {
 		t.Fatalf("expected exec err (%v), got (%v)", expected, err)
 	}
 }
@@ -80,7 +81,7 @@ func TestExecStdoutPipeFailure(t *testing.T) {
 
 	expected := "exec: Stdout already set"
 
-	if err := runner.Exec(cmd); err != nil && err.Error() != expected {
+	if err := runner.Exec(cmd, ioutil.Discard); err != nil && err.Error() != expected {
 		t.Fatalf("expected exec err (%v), got (%v)", expected, err)
 	}
 }
