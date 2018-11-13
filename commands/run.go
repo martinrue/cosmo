@@ -58,7 +58,7 @@ func (cmd *CommandRun) Exec() error {
 
 // NewCommandRun creates a new 'run' subcommand.
 func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runner, args []string, writer io.Writer) (Command, error) {
-	flags := flag.NewFlagSet("run", flag.ExitOnError)
+	flags := flag.NewFlagSet("run", flag.ContinueOnError)
 	flagServer := flags.String("server", "", "")
 	flagVerbose := flags.Bool("v", false, "")
 
@@ -71,7 +71,9 @@ func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runn
 		return nil, ErrNoTask
 	}
 
-	flags.Parse(args[1:])
+	if err := flags.Parse(args[1:]); err != nil {
+		return nil, ErrFlagParse
+	}
 
 	task, server, err := config.Servers.FindTask(args[0], *flagServer)
 	if err != nil {
