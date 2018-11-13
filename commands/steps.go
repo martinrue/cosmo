@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/martinrue/cosmo/config"
 )
@@ -41,7 +40,7 @@ func (cmd *CommandSteps) Exec() error {
 }
 
 // NewCommandSteps creates a new 'steps' subcommand.
-func NewCommandSteps(config config.Config, args []string, writer io.Writer) Command {
+func NewCommandSteps(config config.Config, args []string, writer io.Writer) (Command, error) {
 	flags := flag.NewFlagSet("tasks", flag.ExitOnError)
 	server := flags.String("server", "", "")
 
@@ -51,22 +50,23 @@ func NewCommandSteps(config config.Config, args []string, writer io.Writer) Comm
 
 	if len(args) == 0 {
 		flags.Usage()
-		os.Exit(1)
+		return nil, ErrNoTask
 	}
 
-	flags.Parse(args[1:])
+	if err := flags.Parse(args[1:]); err != nil {
+		return nil, ErrFlagParse
+	}
 
 	taskName := args[0]
 
 	task, _, err := config.Servers.FindTask(taskName, *server)
 	if err != nil {
-		fmt.Fprintf(writer, "error: %s\n", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	return &CommandSteps{
 		TaskName: taskName,
 		Task:     task,
 		Writer:   writer,
-	}
+	}, nil
 }

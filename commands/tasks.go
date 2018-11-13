@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -10,11 +9,6 @@ import (
 
 	"github.com/martinrue/cosmo/config"
 	"github.com/martinrue/cosmo/table"
-)
-
-var (
-	// ErrFlagParse represents an error parsing flags.
-	ErrFlagParse = errors.New("flag parse error")
 )
 
 // CommandTasks lists all tasks for a server.
@@ -77,7 +71,7 @@ func NewCommandTasks(config config.Config, args []string, writer io.Writer) (Com
 	server := flags.String("server", "", "")
 
 	flags.Usage = func() {
-		fmt.Fprintln(writer, "usage: cosmo tasks [--server=<name>]")
+		fmt.Fprintln(writer, "Usage: cosmo tasks [--server=<name>]")
 	}
 
 	if err := flags.Parse(args); err != nil {

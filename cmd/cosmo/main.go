@@ -76,7 +76,7 @@ func main() {
 	case "servers":
 		cmd, err = commands.NewCommandServers(conf, args[1:], os.Stdout)
 	case "steps":
-		cmd = commands.NewCommandSteps(conf, args[1:], os.Stdout)
+		cmd, err = commands.NewCommandSteps(conf, args[1:], os.Stdout)
 	case "tasks":
 		cmd, err = commands.NewCommandTasks(conf, args[1:], os.Stdout)
 	default:
@@ -85,7 +85,10 @@ func main() {
 	}
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		if err != commands.ErrFlagParse && err != commands.ErrNoTask {
+			fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		}
+
 		os.Exit(1)
 	}
 

@@ -22,7 +22,7 @@ func TestCommandTasksInvalidFlag(t *testing.T) {
 	}
 
 	actual := buffer.String()
-	expected := "usage: cosmo tasks [--server=<name>]\n"
+	expected := "Usage: cosmo tasks [--server=<name>]\n"
 
 	if actual != expected {
 		t.Fatalf("expected ctor to display error (%v), got (%v)", expected, actual)
