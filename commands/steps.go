@@ -41,7 +41,7 @@ func (cmd *CommandSteps) Exec() error {
 
 // NewCommandSteps creates a new 'steps' subcommand.
 func NewCommandSteps(config config.Config, args []string, writer io.Writer) (Command, error) {
-	flags := flag.NewFlagSet("tasks", flag.ExitOnError)
+	flags := flag.NewFlagSet("tasks", flag.ContinueOnError)
 	server := flags.String("server", "", "")
 
 	flags.Usage = func() {
@@ -61,7 +61,8 @@ func NewCommandSteps(config config.Config, args []string, writer io.Writer) (Com
 
 	task, _, err := config.Servers.FindTask(taskName, *server)
 	if err != nil {
-		return nil, err
+		fmt.Fprintln(writer, err)
+		return nil, ErrFindTask
 	}
 
 	return &CommandSteps{

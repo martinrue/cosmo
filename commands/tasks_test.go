@@ -35,11 +35,16 @@ func TestCommandTasksMissingServer(t *testing.T) {
 		t.Fatalf("expected config read err to be nil, got (%v)", err)
 	}
 
-	expected := "server 'missing' not found, check config"
+	buffer := &bytes.Buffer{}
+	if _, err := commands.NewCommandTasks(cfg, []string{"--server", "missing"}, buffer); err != commands.ErrFindServer {
+		t.Fatalf("expected ctor to return ErrFindServer err, got (%v)", err)
+	}
 
-	_, err = commands.NewCommandTasks(cfg, []string{"--server", "missing"}, ioutil.Discard)
-	if err != nil && err.Error() != expected {
-		t.Fatalf("expected ctor err (%v), got (%v)", expected, err)
+	actual := buffer.String()
+	expected := "server 'missing' not found, check config\n"
+
+	if actual != expected {
+		t.Fatalf("expected ctor to display error (%v), got (%v)", expected, actual)
 	}
 }
 

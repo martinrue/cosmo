@@ -80,7 +80,8 @@ func NewCommandTasks(config config.Config, args []string, writer io.Writer) (Com
 
 	if *server != "" {
 		if _, ok := config.Servers[*server]; !ok {
-			return nil, fmt.Errorf("server '%s' not found, check config", *server)
+			fmt.Fprintf(writer, "server '%s' not found, check config\n", *server)
+			return nil, ErrFindServer
 		}
 	}
 

@@ -84,15 +84,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err != nil {
-		if err != commands.ErrFlagParse && err != commands.ErrNoTask {
-			fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		}
-
-		os.Exit(1)
-	}
-
-	if cmd == nil {
+	if cmd == nil || err != nil {
 		os.Exit(1)
 	}
 
