@@ -1,0 +1,9 @@
+Steps for task 'task-1' on server 'server-1':
+
+local
+  echo one
+  echo two
+
+remote
+  echo three
+  echo four

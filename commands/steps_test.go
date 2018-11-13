@@ -2,6 +2,9 @@ package commands_test
 
 import (
 	"bytes"
+	"fmt"
+	"io/ioutil"
+	"path"
 	"testing"
 
 	"github.com/martinrue/cosmo/commands"
@@ -45,46 +48,47 @@ func TestCommandStepsErrors(t *testing.T) {
 	}
 }
 
-// func TestCommandStepsOutput(t *testing.T) {
-// 	stringMatchesGoldenFile := func(t *testing.T, str string, filename string) bool {
-// 		golden, err := ioutil.ReadFile(path.Join("testdata", "steps", filename))
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
+func TestCommandStepsOutput(t *testing.T) {
+	stringMatchesGoldenFile := func(t *testing.T, str string, filename string) bool {
+		golden, err := ioutil.ReadFile(path.Join("testdata", "steps", filename))
+		if err != nil {
+			t.Fatal(err)
+		}
 
-// 		return str == string(golden)
-// 	}
+		return str == string(golden)
+	}
 
-// 	tests := []struct {
-// 		Name       string
-// 		Args       []string
-// 		GoldenFile string
-// 	}{
-// 		{"all servers", []string{}, "all-servers.golden"},
-// 		// {"server 1", []string{"--server", "server-1"}, "server-1.golden"},
-// 		// {"server 2", []string{"--server", "server-2"}, "server-2.golden"},
-// 	}
+	tests := []struct {
+		Name       string
+		Args       []string
+		GoldenFile string
+	}{
+		{"first task", []string{"task-1", "--server=server-1"}, "first-task.golden"},
+		{"second task", []string{"task-1", "--server", "server-2"}, "second-task.golden"},
+	}
 
-// 	for _, test := range tests {
-// 		t.Run(test.Name, func(t *testing.T) {
-// 			cfg, err := config.Read("testdata/steps/steps.toml")
-// 			if err != nil {
-// 				t.Fatalf("expected config read err to be nil, got (%v)", err)
-// 			}
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			cfg, err := config.Read("testdata/steps/steps.toml")
+			if err != nil {
+				t.Fatalf("expected config read err to be nil, got (%v)", err)
+			}
 
-// 			buffer := &bytes.Buffer{}
-// 			task, err := commands.NewCommandSteps(cfg, test.Args, buffer)
-// 			if err != nil {
-// 				t.Fatalf("expected ctor to return nil err, got (%v)", err)
-// 			}
+			buffer := &bytes.Buffer{}
+			task, err := commands.NewCommandSteps(cfg, test.Args, buffer)
+			if err != nil {
+				t.Fatalf("expected ctor to return nil err, got (%v)", err)
+			}
 
-// 			if err := task.Exec(); err != nil {
-// 				t.Fatalf("expected exec to return nil err, got (%v)", err)
-// 			}
+			if err := task.Exec(); err != nil {
+				t.Fatalf("expected exec to return nil err, got (%v)", err)
+			}
 
-// 			if !stringMatchesGoldenFile(t, buffer.String(), test.GoldenFile) {
-// 				t.Fatalf("command output does not match golden file")
-// 			}
-// 		})
-// 	}
-// }
+			fmt.Println(buffer.String())
+
+			if !stringMatchesGoldenFile(t, buffer.String(), test.GoldenFile) {
+				t.Fatalf("command output does not match golden file")
+			}
+		})
+	}
+}
