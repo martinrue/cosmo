@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/martinrue/cosmo/config"
 	"github.com/martinrue/cosmo/runner"
@@ -58,7 +57,7 @@ func (cmd *CommandRun) Exec() error {
 }
 
 // NewCommandRun creates a new 'run' subcommand.
-func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runner, args []string, writer io.Writer) Command {
+func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runner, args []string, writer io.Writer) (Command, error) {
 	flags := flag.NewFlagSet("run", flag.ExitOnError)
 	flagServer := flags.String("server", "", "")
 	flagVerbose := flags.Bool("v", false, "")
@@ -69,15 +68,15 @@ func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runn
 
 	if len(args) == 0 {
 		flags.Usage()
-		os.Exit(1)
+		return nil, ErrNoTask
 	}
 
 	flags.Parse(args[1:])
 
 	task, server, err := config.Servers.FindTask(args[0], *flagServer)
 	if err != nil {
-		fmt.Fprintf(writer, "error: %s\n", err)
-		os.Exit(1)
+		fmt.Fprintln(writer, err)
+		return nil, ErrFindTask
 	}
 
 	remoteRunner := remote.(*runner.Remote)
@@ -89,5 +88,5 @@ func NewCommandRun(config config.Config, local runner.Runner, remote runner.Runn
 		Writer:       writer,
 		Task:         task,
 		Verbose:      *flagVerbose,
-	}
+	}, nil
 }

@@ -72,7 +72,7 @@ func main() {
 	case "run":
 		local := &runner.Local{Exec: runner.Exec}
 		remote := &runner.Remote{Exec: runner.Exec}
-		cmd = commands.NewCommandRun(conf, local, remote, args[1:], os.Stdout)
+		cmd, err = commands.NewCommandRun(conf, local, remote, args[1:], os.Stdout)
 	case "servers":
 		cmd, err = commands.NewCommandServers(conf, args[1:], os.Stdout)
 	case "steps":
