@@ -1,0 +1,7 @@
+set -e
+
+echo "echo one"
+echo one || true
+
+echo "echo two"
+echo two || true

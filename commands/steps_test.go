@@ -2,7 +2,6 @@ package commands_test
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"path"
 	"testing"
@@ -83,8 +82,6 @@ func TestCommandStepsOutput(t *testing.T) {
 			if err := task.Exec(); err != nil {
 				t.Fatalf("expected exec to return nil err, got (%v)", err)
 			}
-
-			fmt.Println(buffer.String())
 
 			if !stringMatchesGoldenFile(t, buffer.String(), test.GoldenFile) {
 				t.Fatalf("command output does not match golden file")

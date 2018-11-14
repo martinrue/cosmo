@@ -1,8 +1,10 @@
 [servers.server-1]
-host = 'host'
-user = 'user'
+host = 'host-1'
+user = 'user-1'
 
   [servers.server-1.tasks.task-1]
+    skip_errors = true
+
     local = [
       { exec = 'echo one' },
       { exec = 'echo two' },
@@ -14,8 +16,8 @@ user = 'user'
     ]
 
 [servers.server-2]
-host = 'host'
-user = 'user'
+host = 'host-2'
+user = 'user-2'
 
   [servers.server-2.tasks.task-1]
     local = [

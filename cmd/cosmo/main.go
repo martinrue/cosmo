@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/martinrue/cosmo/script"
+
 	"github.com/martinrue/cosmo/commands"
 	"github.com/martinrue/cosmo/config"
 	"github.com/martinrue/cosmo/runner"
@@ -72,7 +74,9 @@ func main() {
 	case "run":
 		local := &runner.Local{Exec: runner.Exec}
 		remote := &runner.Remote{Exec: runner.Exec}
-		cmd, err = commands.NewCommandRun(conf, local, remote, args[1:], os.Stdout)
+		scriptWriter := &script.Bash{}
+
+		cmd, err = commands.NewCommandRun(conf, local, remote, scriptWriter, args[1:], os.Stdout)
 	case "servers":
 		cmd, err = commands.NewCommandServers(conf, args[1:], os.Stdout)
 	case "steps":
